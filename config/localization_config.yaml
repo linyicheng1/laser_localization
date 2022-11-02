@@ -1,0 +1,60 @@
+# 1 --- use laser only
+# 2 --- laser with wheel odometer
+# 3 --- fake localization
+localization/mode: 1
+global_map: "/home/hy/code/robot_ws/src/inspection_3d_robot/localization/map/map.pcd"
+pose_save: "/home/hy/code/robot_ws/src/inspection_3d_robot/localization/map/pos.txt"
+initial_pose_save: "/home/hy/code/robot_ws/src/inspection_3d_robot/localization/map/pos.txt"
+global_resolution: 1.2
+global_view_resolution: 2
+localization/ndt_resolution: 1
+localization/ndt_step_size: 0.1
+localization/ndt_epsilon: 0.01
+filter/k1: 0.95
+  
+odom_frame: "odom"
+base_link_frame: "base_link"
+laser_frame: "os_sensor"
+laser_topic: "/points"
+####
+
+bbs/map_filter_resolution: 1
+bbs/scan_filter_resolution: 1
+bbs/max_range: 15.0
+# transformation search range
+bbs/min_tx: -200.0
+bbs/max_tx: 200.0
+bbs/min_ty: -200.0
+bbs/max_ty: 200.0
+bbs/min_theta: -3.14
+bbs/max_theta: 3.14
+
+# global map config
+# slice height range (map coordinate)
+bbs/map_min_z: 2.0
+bbs/map_max_z: 2.4
+
+# 2D map params
+bbs/map_width: 512
+bbs/map_height: 1024
+bbs/map_resolution: 0.5
+bbs/max_points_pre_cell: 5
+
+# precomp map pyramid
+bbs/map_pyramid_level: 6
+
+# scan slice height range (sensor coordinate)
+bbs/scan_min_z: -0.2
+bbs/scan_max_z: 0.2
+
+
+####
+
+ndt/resolution: 1.0
+ndt/step_size: 0.1
+ndt/epsilon: 0.01
+ndt/max_iterations: 30.0
+ndt/frame_resolution: 1.0
+odom/kf_distance: 2.0
+odom/local_map_size: 20
+ndt/local_map_resolution: 1.0
