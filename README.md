@@ -5,6 +5,7 @@
 
  [<img src="https://user-images.githubusercontent.com/50650063/199487864-d3f48906-44dc-4baf-8523-500bca800770.png" width = "600" height = "200" alt="效果展示" align=center />](https://www.bilibili.com/video/BV12P4y1m7nH/?spm_id_from=333.999.0.0&vd_source=4dd69fa6d40221a0fa0733def5c4708a)
 
+[演示视频](https://www.bilibili.com/video/BV12P4y1m7nH/?spm_id_from=333.999.0.0&vd_source=4dd69fa6d40221a0fa0733def5c4708a)
 
 ## 算法基本参数 
 
