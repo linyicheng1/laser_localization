@@ -22,22 +22,37 @@
 3. 提供匹配置信度信息，实时反馈当前定位状态。
 4. 提供全局定位获得初始值方法，并包含程序掉电保存当前位置的功能。
 
+## 算法框架图
+
+![333](https://user-images.githubusercontent.com/50650063/199501908-f62f03fa-b7a5-45ad-927d-96a8d27f530e.svg)
+
+
+
 ## 激光里程计
 
 采用NDT算法对相邻激光点云进行匹配得到相对位姿，累计得到激光里程计信息。
 
-![image.png](http://www.static.linyicheng.com.cn/articles/801686ad3353336c27228b273f1c7778.png)
+
 
 **逻辑图**
+
 ![laser_odometer.svg](http://www.static.linyicheng.com.cn/articles/cf02b00d9bd136a591474fbe3b780701.svg)
+
+KITTI 测试结果
+
+<img src="http://www.static.linyicheng.com.cn/articles/801686ad3353336c27228b273f1c7778.png" width = "500" height = "400" alt="效果展示" align=center />
 
 ## 基于地图的定位
 
+**逻辑图**
 
-## 轮式里程计
+![111](https://user-images.githubusercontent.com/50650063/199501054-0de7b1f3-7ede-4e1d-9b9b-6db7fe53d030.svg)
 
-TODO
 
 ## 全局定位初始化
 
-TODO
+**逻辑图**
+
+![222](https://user-images.githubusercontent.com/50650063/199501822-ab83c549-9de1-46be-a37d-02a8e0595a38.svg)
+
+
