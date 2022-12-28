@@ -1,4 +1,4 @@
-# laser_localization 
+# laser_localization | [CN](https://github.com/linyicheng1/laser_localization/blob/main/README_CN.md)
 
 laser_localization is a 3D LiDAR localization algorithm applied to small area scenes, typical application scenarios are industrial parks, neighborhoods or substations, etc. It combines 3D laser point cloud, wheeled odometer and IMU angle information to achieve high precision real-time positioning. A branch-and-bound search algorithm is used for global positioning, while NDT matching is used for local point clouds and global maps. The wheeled odometer and IMU angle information are used as the motion a priori parameters of the matching algorithm to accelerate laser matching and avoid falling into local optimum.
 
