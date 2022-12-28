@@ -1,59 +1,101 @@
-# laser_localization
+# laser_localization 
 
-针对固定区域，小范围内运行的机器人的定位算法，如小区、工业园区，变电站等场景，提出的基于3d激光NDT匹配的全局定位算法。
+laser_localization is a 3D LiDAR localization algorithm applied to small area scenes, typical application scenarios are industrial parks, neighborhoods or substations, etc. It combines 3D laser point cloud, wheeled odometer and IMU angle information to achieve high precision real-time positioning. A branch-and-bound search algorithm is used for global positioning, while NDT matching is used for local point clouds and global maps. The wheeled odometer and IMU angle information are used as the motion a priori parameters of the matching algorithm to accelerate laser matching and avoid falling into local optimum.
 
 
- [<img src="https://user-images.githubusercontent.com/50650063/199487864-d3f48906-44dc-4baf-8523-500bca800770.png" width = "600" height = "200" alt="效果展示" align=center />](https://www.bilibili.com/video/BV12P4y1m7nH/?spm_id_from=333.999.0.0&vd_source=4dd69fa6d40221a0fa0733def5c4708a)
+[<img src="https://user-images.githubusercontent.com/50650063/199487864-d3f48906-44dc-4baf-8523-500bca800770.png" width = "600" height = "200" alt="效果展示" align=center />](https://www.bilibili.com/video/BV12P4y1m7nH/?spm_id_from=333.999.0.0&vd_source=4dd69fa6d40221a0fa0733def5c4708a)
 
-[演示视频](https://www.bilibili.com/video/BV12P4y1m7nH/?spm_id_from=333.999.0.0&vd_source=4dd69fa6d40221a0fa0733def5c4708a)
+[Demo Video](https://www.bilibili.com/video/BV12P4y1m7nH/?spm_id_from=333.999.0.0&vd_source=4dd69fa6d40221a0fa0733def5c4708a)
 
-## 算法基本参数 
 
 |            |                    |                          |
 |------------|--------------------|--------------------------|
-| **适用定位范围** | 500m x 500m (无GPS) | \ (有GPS 情况下未测试，理论在1km以上) |  
-| **运行速度**   | 小于 0.8m/s (单激光)    | 1-2m/s (雷达 + 轮式里程计)      |   
-| **定位精度**   | 典型值 2-3cm          | 典型值 2-3cm                |  
+| **Scene Range** | 500m x 500m (without GPS) | \ (with GPS case not tested, theoretical in 1km above.) |  
+| **Speed**   | less than 0.8m/s (only 3d laser)    | 1-2m/s (3d laser + Wheeled odometer)      |   
+| **Accuracy**   | Typical 2-3cm          | Typical 2-3cm                |  
 
 
-## 定位算法优势与特点
+## 1. Prerequisites
 
-1. 激光里程计 + 激光点云与地图匹配，只采用3d雷达的激光定位方案，可以达到10-15hz左右的输出，在低速时直接使用部署非常简单。
-2. 激光定位与轮式里程计分离，可选择性的采用轮式里程计信息为激光匹配提供先验，有效避免车轮打滑等扰动影响。
-3. 提供匹配置信度信息，实时反馈当前定位状态。
-4. 提供全局定位获得初始值方法，并包含程序掉电保存当前位置的功能。
+#### 1.1 **Ubuntu** 和 **ROS**，Ubuntu 18.04. ROS Dashing && Foxy
 
-## 算法框架图
+```
+sudo apt install ros-YOUR_DISTRO-desktop ros-YOUR_DISTRO-pcl
+```
+[ROS2 Install WIKI](https://docs.ros.org/en/dashing/Installation/Ubuntu-Development-Setup.html)
 
-![333](https://user-images.githubusercontent.com/50650063/199501908-f62f03fa-b7a5-45ad-927d-96a8d27f530e.svg)
+## 2. build laser_localization on ROS2
 
+Clone the repository and build:
 
+```shell
+cd ~/catkin_ws/src
+git clone https://github.com/linyicheng1/laser_localization.git
+cd ../
+colcon build 
+source ~/catkin_ws/install/setup.bash
+```
 
-## 激光里程计
+## 3. Run with KITTI dataset 
 
-采用NDT算法对相邻激光点云进行匹配得到相对位姿，累计得到激光里程计信息。
+Download KITTI dataset：
+[BaiDu Driver]()|[Google Driver]()
 
+Modify the path code in `./launch/localization.py`：
 
+```python 
+23| 
+24| 
+25| 
+26| 
+```
 
-**逻辑图**
+run cmd in shell：
 
-![laser_odometer.svg](http://www.static.linyicheng.com.cn/articles/cf02b00d9bd136a591474fbe3b780701.svg)
+```shell 
+ros2 launch ~/catkin_ws/src/laser_localization/launch/single_laser.py
+```
 
-KITTI 测试结果
+## 4. Run with your device
 
-<img src="http://www.static.linyicheng.com.cn/articles/801686ad3353336c27228b273f1c7778.png" width = "500" height = "400" alt="效果展示" align=center />
+#### 4.0 Build point cloud map 
 
-## 基于地图的定位
+Point cloud maps can be constructed using the current mainstream 3D laser SLAM algorithm and saved at `. /map/map.pcd`.
 
-**逻辑图**
+Recommended 3D point cloud algorithm: [hdl_graph_slam](https://github.com/koide3/hdl_graph_slam)、[ALOAM](https://github.com/tops666/Aloam)、[LIO-SAM](https://github.com/TixiaoShan/LIO-SAM)
 
-![111](https://user-images.githubusercontent.com/50650063/199501054-0de7b1f3-7ede-4e1d-9b9b-6db7fe53d030.svg)
+#### 4.1  Laser only mode 
 
+The single laser mode requires only one 3d radar and can be used for rapid deployment to operate in low speed carts. The relative transformation relationship of `base_link->laser` in the `tf` transformation tree needs to be provided, and the 3d point cloud data topic `pointcloud2` needs to be provided.
 
-## 全局定位初始化
+run cmd:
 
-**逻辑图**
+```shell
+ros2 launch ~/catkin_ws/src/laser_localization/launch/single_laser.py
+```
 
-![222](https://user-images.githubusercontent.com/50650063/199501822-ab83c549-9de1-46be-a37d-02a8e0595a38.svg)
+#### 4.2 Multi-sensor fusion localization
 
+Multi-sensor fusion positioning mode improves accuracy and speed, but requires more information.
 
+1. The odometer data, `odom->base_link` in the `tf` transformation tree, is calculated for the wheel odometer. The calculation of the odometer requires calibration of the robot's wheel radius, calibration of the wheel distance over 10m straight ahead, and multiple rotations and calibration of the axis distance.
+
+Run in shell:
+
+```shell
+ros2 launch ~/catkin_ws/src/laser_localization/launch/localization.py
+```
+
+## 5. Advantages
+
+- Laser odometer + laser point cloud with map matching, laser positioning solution using only 3d radar, can reach about 10-15hz output, very easy to deploy at low speed using directly.
+
+- Laser positioning is separated from wheel odometer, which can selectively use wheel odometer information to provide a priori for laser matching, effectively avoiding the influence of wheel slip and other disturbances.
+
+- Provide matching confidence information and real-time feedback on current positioning status.
+
+- Provide global positioning to obtain the initial value method, and include the function of program power down to save the current position.
+
+## 6. Licence
+
+The source code is released under [GPLv3](http://www.gnu.org/licenses/) license.
