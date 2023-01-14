@@ -89,6 +89,8 @@ namespace laser_localization
         double resolution;
         node_->get_parameter("global_frame_resolution", resolution);
         cloud = downSample(cloud, resolution);
+        if (cloud->points.size() < 400)
+            return true;
         // 1. predict laser pos
         Eigen::Matrix4f predict_pos = estimate_.get_pos();
         // 2. laser match
@@ -97,7 +99,7 @@ namespace laser_localization
         Eigen::Matrix4f base_pos = laser_pos;
         Eigen::Quaternionf q(base_pos.block<3,3>(0,0));
         // 4. update filter, get estimate pos
-        if (ndt_->getFitnessScore() < 3){
+        if (ndt_->getFitnessScore() < 5){
             estimate_.update(base_pos.block<3, 1>(0, 3), q);
             // 5. calculate map -->odom pos
             auto filter_pos = estimate_.get_pos();

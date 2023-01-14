@@ -11,10 +11,11 @@ class laserOdometry
 public:
     laserOdometry(rclcpp::Node *node);
     Eigen::Matrix4f addFrame(const pcl::PointCloud<pcl::PointXYZI>::Ptr& point);
-    Eigen::Matrix4f addFrame(const pcl::PointCloud<pcl::PointXYZI>::Ptr& point, const Eigen::Matrix4f& predict);
+    Eigen::Matrix4f addFrame(const pcl::PointCloud<pcl::PointXYZI>::Ptr& point, const Eigen::Matrix4f& predict, bool &accept);
     pcl::PointCloud<pcl::PointXYZI>::Ptr downSample(const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, float resolution);
     void updateLocalMap(const pcl::PointCloud<pcl::PointXYZI>::Ptr& keyFrame, const Eigen::Matrix4f& pose);
     pcl::PointCloud<pcl::PointXYZI>::Ptr getLocalMap(){return local_map_cloud;}
+
 private:
 
     std::deque<pcl::PointCloud<pcl::PointXYZI>::Ptr> local_map;

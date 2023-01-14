@@ -37,36 +37,36 @@ public:
         this->declare_parameter<double>("bbs/max_ty", 50.0);
         this->declare_parameter<double>("bbs/min_theta", -3.14);
         this->declare_parameter<double>("bbs/max_theta", 3.14);
-        this->declare_parameter<double>("bbs/map_min_z", 0.4);
+        this->declare_parameter<double>("bbs/map_min_z", -0.2);
         this->declare_parameter<double>("bbs/map_max_z", 1.2);
         this->declare_parameter<int>("bbs/map_width", 512);
         this->declare_parameter<int>("bbs/map_height", 512);
         this->declare_parameter<double>("bbs/map_resolution", 0.5);
         this->declare_parameter<int>("bbs/max_points_pre_cell", 5);
         this->declare_parameter<int>("bbs/map_pyramid_level", 6);
-        this->declare_parameter<double>("bbs/scan_min_z", 0.4);
+        this->declare_parameter<double>("bbs/scan_min_z", -0.2);
         this->declare_parameter<double>("bbs/scan_max_z", 1.2);
-        this->declare_parameter<double>("bbs/map_filter_resolution", 1);
-        this->declare_parameter<double>("bbs/scan_filter_resolution", 1);
-        this->declare_parameter<double>("global_map_width", 400.0);
-        this->declare_parameter<double>("global_map_height", 400.0);
+        this->declare_parameter<double>("bbs/map_filter_resolution", 0.5);
+        this->declare_parameter<double>("bbs/scan_filter_resolution", 0.5);
+        this->declare_parameter<double>("global_map_width", 100.0);
+        this->declare_parameter<double>("global_map_height", 100.0);
 
-        this->declare_parameter<double>("ndt/resolution", 1.0);
-        this->declare_parameter<double>("ndt/step_size", 0.1);
+        this->declare_parameter<double>("ndt/resolution", 0.8);
+        this->declare_parameter<double>("ndt/step_size", 0.2);
         this->declare_parameter<double>("ndt/epsilon", 0.01);
         this->declare_parameter<double>("ndt/max_iterations", 30.0);
-        this->declare_parameter<double>("ndt/frame_resolution", 2.0);
-        this->declare_parameter<double>("odom/kf_distance", 3.0);
+        this->declare_parameter<double>("ndt/frame_resolution", 0.5);
+        this->declare_parameter<double>("odom/kf_distance", 2.0);
         this->declare_parameter<int>("odom/local_map_size", 10);
-        this->declare_parameter<double>("ndt/local_map_resolution", 2.0);
+        this->declare_parameter<double>("ndt/local_map_resolution", 0.5);
 
-        this->declare_parameter<int>("localization/mode", 1);
-        this->declare_parameter<std::string>("global_map", "../map/kitti.pcd");
+        this->declare_parameter<int>("localization/mode", 2);
+        this->declare_parameter<std::string>("global_map", "/home/sa/code/robot_ws/src/inspection_3d_robot/laser_localization/map/map.pcd");
         this->declare_parameter<std::string>("odom_frame", "odom");
         this->declare_parameter<std::string>("base_link_frame", "base_link");
-        this->declare_parameter<std::string>("laser_frame", "laser");
+        this->declare_parameter<std::string>("laser_frame", "os_sensor");
         this->declare_parameter<std::string>("laser_topic", "/points");
-        this->declare_parameter<std::string>("pose_save", "pos.txt");
+        this->declare_parameter<std::string>("pose_save", "/home/sa/code/robot_ws/src/inspection_3d_robot/laser_localization/map/pos.txt");
         this->declare_parameter<int>("correct_count", 5);
         this->declare_parameter<double>("global_resolution", 1.3);
         this->declare_parameter<double>("global_frame_resolution", 1);
@@ -76,7 +76,7 @@ public:
         this->declare_parameter<double>("localization/ndt_resolution", 1);
         this->declare_parameter<double>("localization/ndt_step_size", 0.1);
         this->declare_parameter<double>("localization/ndt_epsilon", 0.01);
-        this->declare_parameter<std::string>("initial_pose_save", "init_pos.txt");
+        this->declare_parameter<std::string>("initial_pose_save", "/home/sa/code/robot_ws/src/inspection_3d_robot/laser_localization/map/init_pos.txt");
 
         localization_ = (new laser_localization::localization(this));
         global_localization_ = (new global_localization::GlobalLocalizationBBS(this));
@@ -188,7 +188,7 @@ public:
             std::string topic;
             this->get_parameter("laser_topic", topic);
             laser_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-                    topic, 20, std::bind(&Publisher::laser_callback, this, _1));
+                    topic, rclcpp::SensorDataQoS(), std::bind(&Publisher::laser_callback, this, _1));
 
             if (location_mode_ == 2){
                 while (rclcpp::ok())
@@ -206,6 +206,7 @@ public:
                                     ex.what());
                     }
                     sleep(1);
+                    odom_ready = true;
                 }
             }
         }
@@ -225,6 +226,10 @@ private:
         std::string save_txt;
         this->get_parameter("pose_save", save_txt);
         while (true){
+//            if (!laser_ready)
+//                continue;
+//            if (location_mode_ == 2 && !odom_ready)
+//                continue;
             if(!correct_frames.empty() && !manual_relocalization){
                 lock_.lock();
                 auto frame = correct_frames.front();
@@ -423,6 +428,9 @@ private:
     // laser odom
     void laser_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
     {
+        if (!laser_ready)
+            laser_ready = true;
+//        std::cout<<"get laser points "<<std::endl;
         auto s = std::chrono::system_clock::now();
         static int cnt = correct_count;
 
@@ -433,6 +441,9 @@ private:
             std::cerr<<"cloud is empty"<<std::endl;
             return;
         }
+        //std::cout<<"size: "<<filter->points.size()<<std::endl;
+        // tf to base frame
+        pcl::transformPointCloud(*pcl_cloud, *pcl_cloud, laser_base_);
         Eigen::Matrix4f current_pos;
         // normal localization
         //if ((localization_state == 0 && correct_frames.empty()) || localization_state == 1)
@@ -475,8 +486,11 @@ private:
                     RCLCPP_INFO(this->get_logger(),"Could not transform %s",
                                 ex.what());
                 }
-                Eigen::Matrix4f delta_pos = laser_base_.inverse() * last_trans_.inverse() * current_pos * laser_base_;
-                odom = odometry->addFrame(pcl_cloud, delta_pos);
+                bool accept = false;
+//                std::cout<<"current odom pose: "<<current_pos<<std::endl;
+                Eigen::Matrix4f delta_pos = last_trans_.inverse() * current_pos;
+                odom = odometry->addFrame(pcl_cloud, delta_pos, accept);
+//                std::cout<<"delta_pos "<<delta_pos<<"odom"<<odom<<std::endl;
                 last_trans_ = current_pos;
             }
 
@@ -549,6 +563,9 @@ private:
     // service
     rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr initial_service_;
     rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr relocalization_service_;
+
+    bool odom_ready = false;
+    bool laser_ready = false;
 };
 
 // read msg then publish to ros2

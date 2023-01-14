@@ -134,6 +134,9 @@ namespace global_localization {
         // query
         auto re = query(filtered);
         re.sort(1);
+        if (re.results.empty())
+            return false;
+
         Eigen::Matrix4f T = re.results.at(0)->pose.matrix();
         T(2, 3) = 0;
         // match by ndt

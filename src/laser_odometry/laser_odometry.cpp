@@ -22,13 +22,18 @@ node_(node)
 }
 
 
-Eigen::Matrix4f laserOdometry::addFrame(const pcl::PointCloud<pcl::PointXYZI>::Ptr& point, const Eigen::Matrix4f& predict)
+Eigen::Matrix4f laserOdometry::addFrame(const pcl::PointCloud<pcl::PointXYZI>::Ptr& point, const Eigen::Matrix4f& predict, bool &accept)
 {
     auto s = std::chrono::steady_clock::now();
     float frame_resolution = 1;
     node_->get_parameter("ndt/frame_resolution", frame_resolution);
 
     auto filter = downSample(point, frame_resolution);
+    if (filter->points.size() < 400){
+        odometry = odometry * predict;
+        accept = true;
+        return odometry;
+    }
     std::vector<int> indices;
     pcl::removeNaNFromPointCloud(*filter, *filter, indices);
     if (local_map.empty())
@@ -41,23 +46,36 @@ Eigen::Matrix4f laserOdometry::addFrame(const pcl::PointCloud<pcl::PointXYZI>::P
     ndt.setInputSource(filter);
 
     Eigen::Matrix4f odom_predict = odometry * predict;
-    double dt = (nextGuess.block<3, 1>(0, 3) - odom_predict.block<3, 1>(0, 3)).norm();
-
-    auto angle0 = nextGuess.block<3, 3>(0, 0).eulerAngles(2, 1, 0);
-    auto angle1 = odom_predict.block<3, 3>(0, 0).eulerAngles(2, 1, 0);
-    double da = std::abs(angle0.z() - angle1.z());
-
+//    double dt = (nextGuess.block<3, 1>(0, 3) - odom_predict.block<3, 1>(0, 3)).norm();
+//
+//    auto angle0 = nextGuess.block<3, 3>(0, 0).eulerAngles(2, 1, 0);
+//    auto angle1 = odom_predict.block<3, 3>(0, 0).eulerAngles(2, 1, 0);
+//    double da = std::abs(angle0.z() - angle1.z());
+//    if (da > M_PI)
+//        da = da - 2*M_PI;
+//    else if (da < -M_PI)
+//        da = da += 2*M_PI;
+//    std::cout<<" t0: "<<dt<<" a0: "<<angle0<<" t1: "<<1<<" a1: "<<angle1<<std::endl;
     auto e1 = std::chrono::steady_clock::now();
-    if (dt < 3 && da < 1.5){
+//    if (dt < 5){
         ndt.align(*align, odom_predict);
-    }else {
+//    }else{
+//        ndt.align(*align, nextGuess);
+//        accept = false;
+//    }
+    std::cout<<"fitness score: "<<ndt.getFitnessScore()<<std::endl;
+    accept = true;
+    if (ndt.getFitnessScore() > 3){
+        nextGuess.block<3,3>(0,0) = odom_predict.block<3,3>(0,0);
         ndt.align(*align, nextGuess);
+        accept = false;
     }
+    Eigen::Matrix4f delta = odometry.inverse() * ndt.getFinalTransformation();
+    nextGuess = odometry * delta;
+    odometry = ndt.getFinalTransformation();
+
     auto e2 = std::chrono::steady_clock::now();
 
-    Eigen::Matrix4f delta = odometry.inverse() * ndt.getFinalTransformation();
-    odometry = ndt.getFinalTransformation();
-    nextGuess = odometry * delta;
 
     Eigen::Matrix4f distance = local_map_pose.back().inverse() * odometry;
     float kf_distance;
