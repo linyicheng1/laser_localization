@@ -41,19 +41,20 @@ source ~/catkin_ws/install/setup.bash
 Download KITTI dataset：
 [BaiDu Driver](https://pan.baidu.com/s/1BaVZKkQu8WT2Yo4k4Omjug?pwd=6hrm)|[Google Driver](https://drive.google.com/file/d/1_gsbxX-M7xfUJSB0JO8qOGX5Adfaw0q_/view?usp=sharing)
 
-Modify the path code in `./launch/localization.py`：
+Modify the path code in `./launch/kitti_test.py`：
 
 ```python 
-23| 
-24| 
-25| 
-26| 
+61| parameters=[
+62|     {"kitti_path": "${YOUR_PATH}"}, 
+63| ]
+
+40| {"global_map": "${YOUR_PATH}"},
 ```
 
 run cmd in shell：
 
 ```shell 
-ros2 launch ~/catkin_ws/src/laser_localization/launch/single_laser.py
+ros2 launch ~/catkin_ws/src/laser_localization/launch/kitti_test.py
 ```
 
 ## 4. Run with your device

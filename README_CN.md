@@ -41,19 +41,20 @@ source ~/catkin_ws/install/setup.bash
 下载KITTI数据集：
 [百度网盘]()|[谷歌网盘]()
 
-修改代码 `./launch/localization.py` 中的路径：
+修改代码 `./launch/kitti_test.py` 中的路径：
 
 ```python 
-23| 
-24| 
-25| 
-26| 
+61| parameters=[
+62|     {"kitti_path": "${YOUR_PATH}"}, 
+63| ]
+
+40| {"global_map": "${YOUR_PATH}"},
 ```
 
 运行代码：
 
 ```shell 
-ros2 launch ~/catkin_ws/src/laser_localization/launch/single_laser.py
+ros2 launch ~/catkin_ws/src/laser_localization/launch/kitti_test.py
 ```
 
 ## 4. 在你的设备上运行

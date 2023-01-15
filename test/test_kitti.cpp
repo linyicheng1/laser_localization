@@ -19,13 +19,14 @@ public:
     Publisher()
             : Node("test_laser")
     {
+        this->declare_parameter<std::string>("kitti_path", "/media/lyc/软件/1-10/05/velodyne/");
+
+        this->get_parameter("kitti_path", path);
         file_name = getKittiData(path);
         tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
-        publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("points", 50);
+        publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("points", rclcpp::SensorDataQoS());
         timer_ = this->create_wall_timer(
                 200ms, std::bind(&Publisher::timer_callback, this));
-        std::cin>>cnt;
-        std::cin>>play;
     }
 
     std::vector<std::string> getKittiData(const std::string &path)
@@ -63,7 +64,7 @@ public:
         return points;
     }
 
-    std::string path = "/media/lyc/软件/1-10/05/velodyne/";
+    std::string path;
     std::vector<std::string> file_name;
 private:
     void timer_callback()
@@ -76,7 +77,7 @@ private:
             t.child_frame_id = "laser";
             geometry_msgs::msg::Transform transform;
             Eigen::Quaternionf q1(Eigen::Matrix3f::Identity());
-            transform.translation.x = 10;
+            transform.translation.x = 0;
             transform.translation.y = 0;
             transform.translation.z = 0;
             transform.rotation.x = q1.x();
@@ -101,7 +102,7 @@ private:
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr publisher_;
     std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
     int cnt = 0;
-    bool play = false;
+    bool play = true;
     int getFileNum(const std::string &path)
     {   //需要用到<dirent.h>头文件
         int fileNum = 0;

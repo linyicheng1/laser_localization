@@ -61,12 +61,12 @@ public:
         this->declare_parameter<double>("ndt/local_map_resolution", 0.5);
 
         this->declare_parameter<int>("localization/mode", 2);
-        this->declare_parameter<std::string>("global_map", "/home/sa/code/robot_ws/src/inspection_3d_robot/laser_localization/map/map.pcd");
+        this->declare_parameter<std::string>("global_map", "../map/kitti.pcd");
         this->declare_parameter<std::string>("odom_frame", "odom");
         this->declare_parameter<std::string>("base_link_frame", "base_link");
         this->declare_parameter<std::string>("laser_frame", "os_sensor");
         this->declare_parameter<std::string>("laser_topic", "/points");
-        this->declare_parameter<std::string>("pose_save", "/home/sa/code/robot_ws/src/inspection_3d_robot/laser_localization/map/pos.txt");
+        this->declare_parameter<std::string>("pose_save", "pos.txt");
         this->declare_parameter<int>("correct_count", 5);
         this->declare_parameter<double>("global_resolution", 1.3);
         this->declare_parameter<double>("global_frame_resolution", 1);
